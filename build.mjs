@@ -2,7 +2,8 @@
 // Domain: https://leb.livingwordbibles.com
 // "The Holy Bible" button → https://www.livingwordbibles.com/read-the-bible-online/leb
 // Fonts: EB Garamond; Share order: Facebook → Instagram → X → LinkedIn → Email → Copy
-// Footer includes the exact LEB credit line with required links (verbatim, hyperlinked).
+// Footer: LEB credit line (verbatim text, no quotes) with required hyperlinks.
+// AdSense: Auto ads injected site-wide (head) using publisher ID ca-pub-5303063222439969
 
 import fs from "fs";
 import path from "path";
@@ -14,29 +15,34 @@ const __dirname = path.dirname(__filename);
 // ---------- CONFIG ----------
 const SITE_ORIGIN = "https://leb.livingwordbibles.com";
 const OUTPUT_DIR = path.join(__dirname, "dist");
-const INPUT_JSON = path.join(__dirname, "EntireBible-LEB.json"); // See format note below
+const INPUT_JSON = path.join(__dirname, "EntireBible-LEB.json"); // See schema note below
 const HOLY_BIBLE_URL = "https://www.livingwordbibles.com/read-the-bible-online/leb";
+const ADSENSE_CLIENT = "ca-pub-5303063222439969"; // Auto ads client
+const LOGO_URL =
+  "https://static1.squarespace.com/static/68d6b7d6d21f02432fd7397b/t/690209b3567af44aabfbdaca/1761741235124/LivingWordBibles01.png";
 
-// Social share targets (desktop-safe)
+// Social share targets
 const shareUrls = (url, title) => ({
   facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-  instagram: `https://www.instagram.com/living.word.bibles/`, // desktop opens profile; mobile uses Web Share API below
+  instagram: `https://www.instagram.com/living.word.bibles/`, // desktop → profile; mobile handled via Web Share API
   x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
   email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`
 });
 
-// Minimal inline SVG icons
+// Inline SVG icons (minimal)
 const icons = {
+  logo: `<img src="${LOGO_URL}" alt="Living Word Bibles" style="height:28px;vertical-align:middle">`,
   facebook: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.2 1.3-3.4 3.3-3.4.96 0 1.96.17 1.96.17v2.16h-1.1c-1.08 0-1.42.67-1.42 1.36V12h2.42l-.39 2.9h-2.03v7A10 10 0 0 0 22 12z"/></svg>`,
   instagram: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm5-2.75a1 1 0 1 1 1 1 1 1 0 0 1-1-1z"/></svg>`,
   x: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 3h4.7l5.3 7.3L18.3 3H21l-7.4 9.9L21 21h-4.7l-5.5-7.6L7 21H3l7.8-10.4z"/></svg>`,
   linkedin: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1-.02 5 2.5 2.5 0 0 1 .02-5zM3 8.98h4v12H3zM9 8.98h3.83v1.64h.05c.53-.95 1.83-1.96 3.77-1.96 4.03 0 4.78 2.65 4.78 6.1v6.22h-4v-5.52c0-1.32-.02-3.02-1.84-3.02-1.84 0-2.12 1.43-2.12 2.92v5.62H9z"/></svg>`,
   email: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5z"/></svg>`,
-  copy: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>`
+  copy: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>`,
+  dice: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"/><circle cx="8" cy="8" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="16" cy="16" r="1.5"/><circle cx="16" cy="8" r="1.5"/><circle cx="8" cy="16" r="1.5"/></svg>`
 };
 
-// HTML shell
+// HTML template
 const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical }) => {
   const title = `LEB — ${book} ${chapter}:${verse} | The Holy Bible (Living Word Bibles)`;
   const share = shareUrls(canonical, `${book} ${chapter}:${verse} (LEB)`);
@@ -51,6 +57,8 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- AdSense Auto ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>
   <!-- Open Graph -->
   <meta property="og:title" content="${book} ${chapter}:${verse} (LEB)">
   <meta property="og:type" content="article">
@@ -61,28 +69,35 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
     :root { --ink:#111; --muted:#666; --bg:#fff; --accent:#0e5cff; }
     * { box-sizing: border-box }
     body { margin:0; font-family: 'EB Garamond', serif; color:var(--ink); background:var(--bg); line-height:1.5; }
-    header { display:flex; gap:12px; align-items:center; padding:18px 20px; border-bottom:1px solid #eee; }
-    .brand { font-size:18px; font-weight:600; letter-spacing:.2px; }
+    header { display:flex; gap:12px; align-items:center; padding:14px 20px; border-bottom:1px solid #eee; }
+    .brand { font-size:18px; font-weight:600; letter-spacing:.2px; display:flex; align-items:center; gap:10px; }
     .brand a { color:var(--ink); text-decoration:none }
-    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; text-decoration:none; border:1px solid #ddd; color:var(--ink); }
+    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; text-decoration:none; border:1px solid #ddd; color:var(--ink); background:#fff; }
     .btn:hover { background:#f9f9f9 }
     main { max-width:820px; margin:24px auto; padding:0 20px; }
     h1 { margin:8px 0 6px; font-size:28px; font-weight:600; }
     .verse { font-size:22px; margin:10px 0 18px; }
-    .nav { display:flex; justify-content:space-between; gap:12px; margin:22px 0; }
-    .nav a { flex:1; text-align:center; padding:12px 14px; border:1px solid #ddd; border-radius:12px; text-decoration:none; color:var(--ink); }
-    .nav a:hover { background:#f9f9f9 }
+    .nav { display:flex; gap:12px; margin:22px 0; }
+    .nav a, .nav button { flex:1; text-align:center; padding:12px 14px; border:1px solid #ddd; border-radius:12px; text-decoration:none; color:var(--ink); background:#fff; cursor:pointer }
+    .nav a:hover, .nav button:hover { background:#f9f9f9 }
     .share { display:flex; gap:10px; align-items:center; margin:22px 0 30px; flex-wrap:wrap; }
     .share a, .share button { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; border:1px solid #ddd; background:#fff; color:#111; text-decoration:none; cursor:pointer }
     .share a:hover, .share button:hover { background:#f7f7f7 }
     footer { margin:40px auto; padding:20px; color:var(--muted); font-size:14px; border-top:1px solid #eee; max-width:820px; }
     .footlinks a { color:var(--muted); text-decoration:underline; }
+    .spacer { flex:1; }
+    .logo { display:inline-flex; align-items:center; }
   </style>
 </head>
 <body>
   <header>
     <a class="btn" href="${HOLY_BIBLE_URL}" title="Back to The Holy Bible">← The Holy Bible</a>
-    <div class="brand"><a href="${SITE_ORIGIN}/">Lexham English Bible (LEB)</a></div>
+    <div class="brand">
+      <span class="logo"><a href="https://www.livingwordbibles.com" target="_blank" rel="noopener">${icons.logo}</a></span>
+      <a href="${SITE_ORIGIN}/">Lexham English Bible (LEB)</a>
+    </div>
+    <span class="spacer"></span>
+    <button id="randomBtn" class="btn" title="Random verse">${icons.dice}<span>Random</span></button>
   </header>
   <main>
     <h1>${book} ${chapter}:${verse}</h1>
@@ -90,6 +105,7 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
 
     <div class="nav">
       <a href="${prevUrl}" rel="prev">← Previous</a>
+      <button id="randomBtn2" type="button">${icons.dice}<span style="margin-left:6px">Random</span></button>
       <a href="${nextUrl}" rel="next">Next →</a>
     </div>
 
@@ -100,16 +116,16 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
       <a href="${share.linkedin}" target="_blank" rel="noopener" aria-label="Share on LinkedIn">${icons.linkedin}<span>LinkedIn</span></a>
       <a href="${share.email}" aria-label="Share via Email">${icons.email}<span>Email</span></a>
       <button id="copyLink" type="button" aria-label="Copy link">${icons.copy}<span>Copy</span></button>
-      <button id="nativeShare" type="button" aria-label="Share">${icons.share ?? icons.copy}<span>Share</span></button>
+      <button id="nativeShare" type="button" aria-label="Share"><span>Share</span></button>
     </div>
   </main>
 
   <footer>
     <div class="footlinks">
-      “Presented by <a href="https://www.livingwordbibles.com" target="_blank" rel="noopener">Living Word Bibles</a> Under License From
+      Presented by <a href="https://www.livingwordbibles.com" target="_blank" rel="noopener">Living Word Bibles</a> Under License From
       <a href="https://lexhamenglishbible.com" target="_blank" rel="noopener">Lexham English Bible (LEB)</a> |
       Copyright © 2013 <a href="https://lexhampress.com" target="_blank" rel="noopener">Lexham Press</a> |
-      Lexham Press is a registered trademark of Faithlife Corporation.”
+      Lexham Press is a registered trademark of Faithlife Corporation.
     </div>
   </footer>
 
@@ -120,12 +136,29 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
       catch { prompt('Copy this URL:', '${canonical}'); }
     });
 
-    // Native (mobile) share, falls back to opening IG profile when unsupported
+    // Native (mobile) share — fall back to opening IG profile on desktop
     document.getElementById('nativeShare').addEventListener('click', async () => {
       const data = { title: '${book} ${chapter}:${verse} (LEB)', url: '${canonical}' };
       if (navigator.share) { try { await navigator.share(data); } catch (e) {} }
       else { window.open('${share.instagram}', '_blank'); }
     });
+
+    // Random buttons → fetch the manifest once, then jump
+    async function goRandom() {
+      try {
+        const res = await fetch('/index.json', { cache: 'no-store' });
+        const data = await res.json();
+        const list = data.verses || [];
+        if (!list.length) return;
+        const pick = list[Math.floor(Math.random() * list.length)];
+        window.location.href = pick;
+      } catch (e) {
+        // As a graceful fallback, jump to next
+        window.location.href = '${nextUrl}';
+      }
+    }
+    document.getElementById('randomBtn').addEventListener('click', goRandom);
+    document.getElementById('randomBtn2').addEventListener('click', goRandom);
   </script>
 </body>
 </html>`;
@@ -134,15 +167,14 @@ const htmlTemplate = ({ book, chapter, verse, text, prevUrl, nextUrl, canonical 
 // ---------- BUILD ----------
 const data = JSON.parse(fs.readFileSync(INPUT_JSON, "utf8"));
 // Expected JSON format:
-// { books: [ { name:"Genesis", slug:"genesis", chapters: [ [ { v:1, t:"In the beginning..." }, ... ], ... ] }, ... ] }
+// { books: [ { name:"Genesis", slug:"genesis", chapters: [ [ { v:1, t:"..." }, ... ], ... ] }, ... ] }
 
 fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-// Make /[book]/[chapter]/[verse]/ pages
+// Flatten into an index for prev/next and a manifest for /index.json
 const books = data.books;
-const indexOf = []; // flat list for prev/next
-
+const indexOf = [];
 for (const b of books) {
   for (let cIdx = 0; cIdx < b.chapters.length; cIdx++) {
     const chapter = b.chapters[cIdx];
@@ -152,11 +184,14 @@ for (const b of books) {
     }
   }
 }
+const manifest = indexOf.map((it) => `/${it.bslug}/${it.c}/${it.v}/`);
+fs.writeFileSync(path.join(OUTPUT_DIR, "index.json"), JSON.stringify({ verses: manifest }), "utf8");
 
 function urlFor(item) {
   return `${SITE_ORIGIN}/${item.bslug}/${item.c}/${item.v}/`;
 }
 
+// Write every verse page
 for (let i = 0; i < indexOf.length; i++) {
   const item = indexOf[i];
   const prevItem = indexOf[i - 1] ?? indexOf[i];
@@ -175,7 +210,7 @@ for (let i = 0; i < indexOf.length; i++) {
   fs.writeFileSync(path.join(dir, "index.html"), html, "utf8");
 }
 
-// Root landing (optional): redirect to Genesis 1:1
+// Root landing → redirect to Genesis 1:1
 const first = indexOf[0];
 fs.writeFileSync(
   path.join(OUTPUT_DIR, "index.html"),
@@ -183,7 +218,20 @@ fs.writeFileSync(
   "utf8"
 );
 
+// Convenience /random page: JS redirects to a random verse using index.json
+fs.mkdirSync(path.join(OUTPUT_DIR, "random"), { recursive: true });
+fs.writeFileSync(
+  path.join(OUTPUT_DIR, "random", "index.html"),
+  `<!doctype html><title>Random Verse</title><script>
+    (async()=>{try{const r=await fetch('/index.json');const d=await r.json();
+    const list=d.verses||[]; if(!list.length) location.href='/';
+    else location.href=list[Math.floor(Math.random()*list.length)];
+    }catch(e){ location.href='/'; }})();
+  </script>`,
+  "utf8"
+);
+
 // CNAME for GitHub Pages custom domain
 fs.writeFileSync(path.join(OUTPUT_DIR, "CNAME"), "leb.livingwordbibles.com", "utf8");
 
-console.log(`Built ${indexOf.length} verse pages to /dist`);
+console.log(`Built ${indexOf.length} verse pages to /dist (plus index.json & /random).`);
