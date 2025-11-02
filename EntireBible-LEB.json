@@ -1,0 +1,12 @@
+{
+  "books": [
+    {
+      "name": "Genesis",
+      "slug": "genesis",
+      "chapters": [
+        [ { "v": 1, "t": "In the beginning God created the heavens and the earth." }, { "v": 2, "t": "…" } ],
+        [ { "v": 1, "t": "…" } ]
+      ]
+    }
+  ]
+}
